@@ -47,6 +47,7 @@ VITE_API_KEY=change-me
 2. `알림 조회`로 open 알림 리스트 확인
 3. 알림 WS 연결 상태(`Alerts WS connected`) 확인
 4. 각 카드에서 `ack` 또는 `resolve` 처리
+5. `자동 클립 생성`으로 최근 트랙 기반 하이라이트를 즉시 생성
 
 ## 빌드
 ```bash
@@ -70,6 +71,7 @@ npm run preview
 - `POST /staff/alerts/{alert_id}/ack`
 - `POST /system/alerts/evaluate`
 - `POST /system/live-tracks/ingest`
+- `POST /system/clips/auto-generate`
 
 ## 배포
 - 정적 호스팅 권장 (CDN)

@@ -252,6 +252,28 @@ export async function evaluateAlerts({
   return res.json();
 }
 
+export async function generateAutoClips({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "system",
+  userId = "",
+  windowSeconds = 180,
+  maxClips = 5,
+  perAnimalLimit = 2,
+}) {
+  const qs = new URLSearchParams();
+  qs.set("window_seconds", String(windowSeconds));
+  qs.set("max_clips", String(maxClips));
+  qs.set("per_animal_limit", String(perAnimalLimit));
+  const res = await fetch(`${apiBase}/system/clips/auto-generate?${qs.toString()}`, {
+    method: "POST",
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
 export async function fetchStaffAlerts({
   apiBase,
   apiKey,

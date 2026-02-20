@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useStaffOps } from "../hooks/useStaffOps";
 import { useStaffAlerts } from "../hooks/useStaffAlerts";
 import { useTodayBoard } from "../hooks/useTodayBoard";
-import { ackStaffAlert, evaluateAlerts, fetchStaffAlerts } from "../lib/api";
+import { ackStaffAlert, evaluateAlerts, fetchStaffAlerts, generateAutoClips } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 export default function StaffBoard() {
@@ -16,6 +16,9 @@ export default function StaffBoard() {
   });
   const [alerts, setAlerts] = useState([]);
   const [alertError, setAlertError] = useState("");
+  const [autoClipWindow, setAutoClipWindow] = useState(180);
+  const [autoClipMax, setAutoClipMax] = useState(5);
+  const [autoClipResult, setAutoClipResult] = useState(null);
   const { busy, error, result, submitMove, submitLog } = useStaffOps();
   const { board, loading: boardLoading, error: boardError, refresh } = useTodayBoard();
   const {
@@ -67,6 +70,24 @@ export default function StaffBoard() {
     }
   }
 
+  async function runAutoClipGenerate() {
+    setAlertError("");
+    try {
+      const data = await generateAutoClips({
+        apiBase,
+        apiKey,
+        role: role === "system" || role === "admin" ? role : "system",
+        userId,
+        sessionToken,
+        windowSeconds: autoClipWindow,
+        maxClips: autoClipMax,
+      });
+      setAutoClipResult(data);
+    } catch (e) {
+      setAlertError(`자동 클립 생성 실패: ${e.message}`);
+    }
+  }
+
   const shownAlerts = liveAlerts.length > 0 ? liveAlerts : alerts;
 
   return (
@@ -79,6 +100,7 @@ export default function StaffBoard() {
         </button>
         <button className="ghost" onClick={loadAlerts}>알림 조회</button>
         <button className="ghost" onClick={runAlertEvaluate}>알림 평가 실행</button>
+        <button className="ghost" onClick={runAutoClipGenerate}>자동 클립 생성</button>
         <button className="ghost" onClick={reconnect}>알림 WS 재연결</button>
         <button className="ghost" onClick={disconnect}>알림 WS 종료</button>
         <button className={`ghost ${autoEval ? "active" : ""}`} onClick={() => setAutoEval(!autoEval)}>
@@ -90,11 +112,24 @@ export default function StaffBoard() {
           onChange={(e) => setIntervalMs(Number(e.target.value || 1500))}
           placeholder="alert_interval_ms"
         />
+        <input
+          type="number"
+          value={autoClipWindow}
+          onChange={(e) => setAutoClipWindow(Number(e.target.value || 180))}
+          placeholder="clip_window_sec"
+        />
+        <input
+          type="number"
+          value={autoClipMax}
+          onChange={(e) => setAutoClipMax(Number(e.target.value || 5))}
+          placeholder="clip_max"
+        />
       </div>
       {boardError ? <p className="error">{boardError}</p> : null}
       {alertError ? <p className="error">{alertError}</p> : null}
       {alertsWsError ? <p className="error">{alertsWsError}</p> : null}
       <p className="muted">Alerts WS connected: {String(alertsConnected)}</p>
+      {autoClipResult ? <pre>{JSON.stringify(autoClipResult, null, 2)}</pre> : null}
       {board ? (
         <p className="muted">
           Active {board.total_active_bookings}건 | Zones {JSON.stringify(board.zone_counts)} | Actions{" "}
