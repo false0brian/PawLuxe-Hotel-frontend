@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useStaffOps } from "../hooks/useStaffOps";
+import { useStaffAlerts } from "../hooks/useStaffAlerts";
 import { useTodayBoard } from "../hooks/useTodayBoard";
 import { ackStaffAlert, evaluateAlerts, fetchStaffAlerts } from "../lib/api";
 import { useAppStore } from "../store/appStore";
@@ -17,6 +18,17 @@ export default function StaffBoard() {
   const [alertError, setAlertError] = useState("");
   const { busy, error, result, submitMove, submitLog } = useStaffOps();
   const { board, loading: boardLoading, error: boardError, refresh } = useTodayBoard();
+  const {
+    connected: alertsConnected,
+    error: alertsWsError,
+    alerts: liveAlerts,
+    autoEval,
+    intervalMs,
+    setAutoEval,
+    setIntervalMs,
+    reconnect,
+    disconnect,
+  } = useStaffAlerts();
   const items = board?.items ?? [];
 
   async function loadAlerts() {
@@ -55,6 +67,8 @@ export default function StaffBoard() {
     }
   }
 
+  const shownAlerts = liveAlerts.length > 0 ? liveAlerts : alerts;
+
   return (
     <section className="panel">
       <h2>Staff Today Board</h2>
@@ -65,18 +79,31 @@ export default function StaffBoard() {
         </button>
         <button className="ghost" onClick={loadAlerts}>알림 조회</button>
         <button className="ghost" onClick={runAlertEvaluate}>알림 평가 실행</button>
+        <button className="ghost" onClick={reconnect}>알림 WS 재연결</button>
+        <button className="ghost" onClick={disconnect}>알림 WS 종료</button>
+        <button className={`ghost ${autoEval ? "active" : ""}`} onClick={() => setAutoEval(!autoEval)}>
+          auto_eval: {String(autoEval)}
+        </button>
+        <input
+          type="number"
+          value={intervalMs}
+          onChange={(e) => setIntervalMs(Number(e.target.value || 1500))}
+          placeholder="alert_interval_ms"
+        />
       </div>
       {boardError ? <p className="error">{boardError}</p> : null}
       {alertError ? <p className="error">{alertError}</p> : null}
+      {alertsWsError ? <p className="error">{alertsWsError}</p> : null}
+      <p className="muted">Alerts WS connected: {String(alertsConnected)}</p>
       {board ? (
         <p className="muted">
           Active {board.total_active_bookings}건 | Zones {JSON.stringify(board.zone_counts)} | Actions{" "}
           {JSON.stringify(board.action_counts)}
         </p>
       ) : null}
-      {alerts.length > 0 ? (
+      {shownAlerts.length > 0 ? (
         <div className="cards">
-          {alerts.slice(0, 8).map((it) => (
+          {shownAlerts.slice(0, 8).map((it) => (
             <article className="card" key={it.alert_id}>
               <strong>{it.type}</strong>
               <span>sev: {it.severity} | status: {it.status}</span>

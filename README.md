@@ -44,7 +44,8 @@ VITE_API_KEY=change-me
 ## Staff Alerts 사용
 1. `Staff` 탭에서 `알림 평가 실행` 클릭
 2. `알림 조회`로 open 알림 리스트 확인
-3. 각 카드에서 `ack` 또는 `resolve` 처리
+3. 알림 WS 연결 상태(`Alerts WS connected`) 확인
+4. 각 카드에서 `ack` 또는 `resolve` 처리
 
 ## 빌드
 ```bash
@@ -61,6 +62,7 @@ npm run preview
 - `GET /live/zones/summary`
 - `GET /live/zones/heatmap`
 - `WS /ws/live-tracks`
+- `WS /ws/staff-alerts`
 - `GET /staff/alerts`
 - `POST /staff/alerts/{alert_id}/ack`
 - `POST /system/alerts/evaluate`
