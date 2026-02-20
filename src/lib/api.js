@@ -190,3 +190,55 @@ export async function fetchLiveZoneHeatmap({
   if (!res.ok) await parseError(res);
   return res.json();
 }
+
+export async function evaluateAlerts({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "system",
+  userId = "",
+}) {
+  const res = await fetch(`${apiBase}/system/alerts/evaluate`, {
+    method: "POST",
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
+export async function fetchStaffAlerts({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "staff",
+  userId = "staff-1",
+  status = "open",
+  limit = 100,
+}) {
+  const qs = new URLSearchParams();
+  qs.set("status", status);
+  qs.set("limit", String(limit));
+  const res = await fetch(`${apiBase}/staff/alerts?${qs.toString()}`, {
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
+export async function ackStaffAlert({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "staff",
+  userId = "staff-1",
+  alertId,
+  status = "acked",
+}) {
+  const res = await fetch(`${apiBase}/staff/alerts/${encodeURIComponent(alertId)}/ack`, {
+    method: "POST",
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}

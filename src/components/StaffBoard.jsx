@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useStaffOps } from "../hooks/useStaffOps";
 import { useTodayBoard } from "../hooks/useTodayBoard";
+import { ackStaffAlert, evaluateAlerts, fetchStaffAlerts } from "../lib/api";
+import { useAppStore } from "../store/appStore";
 
 export default function StaffBoard() {
+  const { apiBase, apiKey, role, userId, sessionToken } = useAppStore();
   const [form, setForm] = useState({
     petId: "",
     bookingId: "",
@@ -10,9 +13,47 @@ export default function StaffBoard() {
     type: "feeding",
     value: "",
   });
+  const [alerts, setAlerts] = useState([]);
+  const [alertError, setAlertError] = useState("");
   const { busy, error, result, submitMove, submitLog } = useStaffOps();
   const { board, loading: boardLoading, error: boardError, refresh } = useTodayBoard();
   const items = board?.items ?? [];
+
+  async function loadAlerts() {
+    setAlertError("");
+    try {
+      const data = await fetchStaffAlerts({ apiBase, apiKey, role, userId, sessionToken });
+      setAlerts(data);
+    } catch (e) {
+      setAlertError(`알림 조회 실패: ${e.message}`);
+    }
+  }
+
+  async function runAlertEvaluate() {
+    setAlertError("");
+    try {
+      await evaluateAlerts({
+        apiBase,
+        apiKey,
+        role: role === "system" || role === "admin" ? role : "system",
+        userId,
+        sessionToken,
+      });
+      await loadAlerts();
+    } catch (e) {
+      setAlertError(`알림 평가 실패: ${e.message}`);
+    }
+  }
+
+  async function resolveAlert(alertId, status = "acked") {
+    setAlertError("");
+    try {
+      await ackStaffAlert({ apiBase, apiKey, role, userId, sessionToken, alertId, status });
+      await loadAlerts();
+    } catch (e) {
+      setAlertError(`알림 처리 실패: ${e.message}`);
+    }
+  }
 
   return (
     <section className="panel">
@@ -22,13 +63,32 @@ export default function StaffBoard() {
         <button className="ghost" onClick={refresh} disabled={boardLoading}>
           {boardLoading ? "보드 갱신중..." : "보드 새로고침"}
         </button>
+        <button className="ghost" onClick={loadAlerts}>알림 조회</button>
+        <button className="ghost" onClick={runAlertEvaluate}>알림 평가 실행</button>
       </div>
       {boardError ? <p className="error">{boardError}</p> : null}
+      {alertError ? <p className="error">{alertError}</p> : null}
       {board ? (
         <p className="muted">
           Active {board.total_active_bookings}건 | Zones {JSON.stringify(board.zone_counts)} | Actions{" "}
           {JSON.stringify(board.action_counts)}
         </p>
+      ) : null}
+      {alerts.length > 0 ? (
+        <div className="cards">
+          {alerts.slice(0, 8).map((it) => (
+            <article className="card" key={it.alert_id}>
+              <strong>{it.type}</strong>
+              <span>sev: {it.severity} | status: {it.status}</span>
+              <span>{it.message}</span>
+              <span className="muted">zone:{it.zone_id ?? "-"} cam:{it.camera_id ?? "-"}</span>
+              <div className="row">
+                <button className="ghost" onClick={() => resolveAlert(it.alert_id, "acked")}>ack</button>
+                <button className="ghost" onClick={() => resolveAlert(it.alert_id, "resolved")}>resolve</button>
+              </div>
+            </article>
+          ))}
+        </div>
       ) : null}
       <div className="cards">
         {items.map((it) => (

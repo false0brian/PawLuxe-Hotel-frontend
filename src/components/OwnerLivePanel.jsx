@@ -65,6 +65,7 @@ export default function OwnerLivePanel() {
       </div>
       {error ? <p className="error">{error}</p> : null}
       {status ? <pre>{JSON.stringify(status, null, 2)}</pre> : null}
+      {tokenResult?.watermark ? <p className="muted">워터마크: {tokenResult.watermark}</p> : null}
       {tokenResult ? <pre>{JSON.stringify(tokenResult, null, 2)}</pre> : null}
     </section>
   );

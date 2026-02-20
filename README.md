@@ -5,6 +5,7 @@ PawLuxe 보호자/스태프/관리자 콘솔 프론트엔드 (React + Vite).
 ## 화면 범위 (MVP)
 - Owner Live: 펫 상태 조회, 스트림 토큰 발급
 - Staff Board: 운영 액션(이동/기록/클립/사고) 중심 UI
+- Staff Alerts: 규칙 기반 알림 조회/ack/resolved
 - Admin Health: 카메라 헬스 모니터링
 - Zone Live: 존 단위 실시간 관측/트랙/카메라 헬스 집계
 - Live Overlay: 카메라 영상 위 객체 bbox 실시간 오버레이
@@ -40,6 +41,11 @@ VITE_API_KEY=change-me
 4. 존 카드에서 `관측/트랙/동물 수`와 카메라 상태를 실시간 확인
 5. 아래 `Zone Heatmap`에서 시간 버킷별 존 트래픽 추이를 확인
 
+## Staff Alerts 사용
+1. `Staff` 탭에서 `알림 평가 실행` 클릭
+2. `알림 조회`로 open 알림 리스트 확인
+3. 각 카드에서 `ack` 또는 `resolve` 처리
+
 ## 빌드
 ```bash
 npm run build
@@ -55,6 +61,10 @@ npm run preview
 - `GET /live/zones/summary`
 - `GET /live/zones/heatmap`
 - `WS /ws/live-tracks`
+- `GET /staff/alerts`
+- `POST /staff/alerts/{alert_id}/ack`
+- `POST /system/alerts/evaluate`
+- `POST /system/live-tracks/ingest`
 
 ## 배포
 - 정적 호스팅 권장 (CDN)
