@@ -1,13 +1,15 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import OwnerLivePanel from "./components/OwnerLivePanel";
 import StaffBoard from "./components/StaffBoard";
 import AdminHealthPanel from "./components/AdminHealthPanel";
+import LiveOverlayPanel from "./components/LiveOverlayPanel";
 import { useAppStore } from "./store/appStore";
 
 const TABS = [
   { id: "owner", label: "Owner" },
   { id: "staff", label: "Staff" },
   { id: "admin", label: "Admin" },
+  { id: "live", label: "LiveOverlay" },
 ];
 
 export default function App() {
@@ -22,6 +24,7 @@ export default function App() {
   const content = useMemo(() => {
     if (tab === "owner") return <OwnerLivePanel />;
     if (tab === "staff") return <StaffBoard />;
+    if (tab === "live") return <LiveOverlayPanel />;
     return <AdminHealthPanel />;
   }, [tab]);
 
@@ -55,6 +58,11 @@ export default function App() {
           </button>
         ))}
       </nav>
+      <section className="panel">
+        <p className="muted">
+          빠른 시작: `role`/`x-user-id`를 입력하고 Owner 탭에서 `pet_id`, `owner_id`, `booking_id`를 넣어 API를 호출하세요.
+        </p>
+      </section>
       {content}
     </main>
   );

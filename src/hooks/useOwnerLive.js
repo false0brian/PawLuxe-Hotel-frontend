@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { fetchPetStatus, issueStreamToken } from "../lib/api";
+import { fetchBookings, fetchPetStatus, issueStreamToken } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 export function useOwnerLive() {
@@ -8,6 +8,7 @@ export function useOwnerLive() {
   const [tokenResult, setTokenResult] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [bookings, setBookings] = useState([]);
 
   const validation = useMemo(() => {
     const errs = [];
@@ -72,13 +73,46 @@ export function useOwnerLive() {
     }
   }
 
+  async function loadBookings() {
+    if (!ownerForm.ownerId.trim()) {
+      setError("owner_id를 먼저 입력하세요.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const data = await fetchBookings({
+        apiBase,
+        apiKey,
+        role,
+        userId,
+        sessionToken,
+        ownerId: ownerForm.ownerId.trim(),
+      });
+      const priority = { checked_in: 0, reserved: 1, checked_out: 2, canceled: 3 };
+      const sorted = [...data].sort((a, b) => {
+        const pa = priority[a.status] ?? 99;
+        const pb = priority[b.status] ?? 99;
+        if (pa !== pb) return pa - pb;
+        return String(b.start_at).localeCompare(String(a.start_at));
+      });
+      setBookings(sorted);
+    } catch (e) {
+      setError(`예약 조회 실패: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return {
     status,
     tokenResult,
+    bookings,
     error,
     loading,
     validation,
     loadStatus,
     createToken,
+    loadBookings,
   };
 }
