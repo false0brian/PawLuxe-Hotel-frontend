@@ -10,6 +10,7 @@ export default function OwnerLivePanel() {
     tokenResult,
     verifyResult,
     report,
+    clipPlaybackResult,
     bookings,
     error,
     loading,
@@ -20,6 +21,7 @@ export default function OwnerLivePanel() {
     closeTokenSession,
     loadBookings,
     loadReport,
+    openClipPlayback,
   } =
     useOwnerLive();
   const [viewerSessionId, setViewerSessionId] = useState("device-a");
@@ -111,6 +113,7 @@ export default function OwnerLivePanel() {
       {tokenResult?.watermark ? <p className="muted">워터마크: {tokenResult.watermark}</p> : null}
       {tokenResult ? <pre>{JSON.stringify(tokenResult, null, 2)}</pre> : null}
       {verifyResult ? <pre>{JSON.stringify(verifyResult, null, 2)}</pre> : null}
+      {clipPlaybackResult ? <pre>{JSON.stringify(clipPlaybackResult, null, 2)}</pre> : null}
       {report ? (
         <>
           <div className="divider" />
@@ -124,6 +127,7 @@ export default function OwnerLivePanel() {
                 <span>start: {clip.start_ts}</span>
                 <span>end: {clip.end_ts}</span>
                 <span className="muted">path: {clip.path}</span>
+                <button className="ghost" onClick={() => openClipPlayback(clip.clip_id)}>재생</button>
               </article>
             ))}
           </div>

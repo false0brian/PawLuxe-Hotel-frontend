@@ -3,6 +3,7 @@ import {
   closeStreamSession,
   fetchBookingReport,
   fetchBookings,
+  fetchClipPlaybackUrl,
   fetchPetStatus,
   issueStreamToken,
   verifyStreamToken,
@@ -18,6 +19,7 @@ export function useOwnerLive() {
   const [bookings, setBookings] = useState([]);
   const [verifyResult, setVerifyResult] = useState(null);
   const [report, setReport] = useState(null);
+  const [clipPlaybackResult, setClipPlaybackResult] = useState(null);
 
   const validation = useMemo(() => {
     const errs = [];
@@ -185,11 +187,39 @@ export function useOwnerLive() {
     }
   }
 
+  async function openClipPlayback(clipId) {
+    if (!clipId?.trim()) {
+      setError("clip_id가 비어있습니다.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const data = await fetchClipPlaybackUrl({
+        apiBase,
+        apiKey,
+        clipId: clipId.trim(),
+        role,
+        userId,
+        sessionToken,
+      });
+      setClipPlaybackResult(data);
+      if (data.playback_url) {
+        window.open(data.playback_url, "_blank", "noopener,noreferrer");
+      }
+    } catch (e) {
+      setError(`클립 재생 URL 조회 실패: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return {
     status,
     tokenResult,
     verifyResult,
     report,
+    clipPlaybackResult,
     bookings,
     error,
     loading,
@@ -200,5 +230,6 @@ export function useOwnerLive() {
     closeTokenSession,
     loadBookings,
     loadReport,
+    openClipPlayback,
   };
 }

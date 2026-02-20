@@ -193,6 +193,21 @@ export async function fetchBookingReport({
   return res.json();
 }
 
+export async function fetchClipPlaybackUrl({
+  apiBase,
+  apiKey,
+  clipId,
+  sessionToken = "",
+  role = "owner",
+  userId = "",
+}) {
+  const res = await fetch(`${apiBase}/clips/${encodeURIComponent(clipId)}/playback-url`, {
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
 export async function fetchCameraPlaybackUrl({
   apiBase,
   apiKey,
