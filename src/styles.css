@@ -147,6 +147,9 @@ button {
   gap: 6px;
   background: #fffdf8;
 }
+.zone-card {
+  align-content: start;
+}
 
 .table {
   margin-top: 10px;

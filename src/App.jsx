@@ -3,12 +3,14 @@ import OwnerLivePanel from "./components/OwnerLivePanel";
 import StaffBoard from "./components/StaffBoard";
 import AdminHealthPanel from "./components/AdminHealthPanel";
 import LiveOverlayPanel from "./components/LiveOverlayPanel";
+import ZoneLivePanel from "./components/ZoneLivePanel";
 import { useAppStore } from "./store/appStore";
 
 const TABS = [
   { id: "owner", label: "Owner" },
   { id: "staff", label: "Staff" },
   { id: "admin", label: "Admin" },
+  { id: "zone", label: "ZoneLive" },
   { id: "live", label: "LiveOverlay" },
 ];
 
@@ -24,6 +26,7 @@ export default function App() {
   const content = useMemo(() => {
     if (tab === "owner") return <OwnerLivePanel />;
     if (tab === "staff") return <StaffBoard />;
+    if (tab === "zone") return <ZoneLivePanel />;
     if (tab === "live") return <LiveOverlayPanel />;
     return <AdminHealthPanel />;
   }, [tab]);

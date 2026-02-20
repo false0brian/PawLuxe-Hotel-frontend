@@ -146,3 +146,24 @@ export async function fetchCameraPlaybackUrl({
   if (!res.ok) await parseError(res);
   return res.json();
 }
+
+export async function fetchLiveZoneSummary({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "staff",
+  userId = "staff-1",
+  windowSeconds = 10,
+  cameraId = "",
+  animalId = "",
+}) {
+  const qs = new URLSearchParams();
+  qs.set("window_seconds", String(windowSeconds));
+  if (cameraId.trim()) qs.set("camera_id", cameraId.trim());
+  if (animalId.trim()) qs.set("animal_id", animalId.trim());
+  const res = await fetch(`${apiBase}/live/zones/summary?${qs.toString()}`, {
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
