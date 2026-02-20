@@ -150,6 +150,41 @@ button {
 .zone-card {
   align-content: start;
 }
+.heatmap {
+  display: grid;
+  gap: 8px;
+}
+.heatmap-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 64px;
+  align-items: end;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fffaf2;
+}
+.heatmap-label {
+  font-weight: 700;
+  font-size: 13px;
+  word-break: break-all;
+}
+.heatmap-bars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(6px, 1fr);
+  align-items: end;
+  gap: 4px;
+  min-height: 48px;
+}
+.heatmap-bar {
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg, #d35a2e 0%, #a53a17 100%);
+}
+.heatmap-total {
+  text-align: right;
+  font-weight: 700;
+}
 
 .table {
   margin-top: 10px;
@@ -285,5 +320,9 @@ pre {
   }
   .overlay-stage {
     height: 300px;
+  }
+  .heatmap-row {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 }

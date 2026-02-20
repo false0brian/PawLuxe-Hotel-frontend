@@ -167,3 +167,26 @@ export async function fetchLiveZoneSummary({
   if (!res.ok) await parseError(res);
   return res.json();
 }
+
+export async function fetchLiveZoneHeatmap({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "staff",
+  userId = "staff-1",
+  windowSeconds = 300,
+  bucketSeconds = 10,
+  cameraId = "",
+  animalId = "",
+}) {
+  const qs = new URLSearchParams();
+  qs.set("window_seconds", String(windowSeconds));
+  qs.set("bucket_seconds", String(bucketSeconds));
+  if (cameraId.trim()) qs.set("camera_id", cameraId.trim());
+  if (animalId.trim()) qs.set("animal_id", animalId.trim());
+  const res = await fetch(`${apiBase}/live/zones/heatmap?${qs.toString()}`, {
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}

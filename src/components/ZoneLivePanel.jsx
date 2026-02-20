@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { fetchCameraHealth, fetchLiveZoneSummary } from "../lib/api";
+import { fetchCameraHealth, fetchLiveZoneHeatmap, fetchLiveZoneSummary } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 export default function ZoneLivePanel() {
   const { apiBase, apiKey, role, userId, sessionToken } = useAppStore();
   const [windowSeconds, setWindowSeconds] = useState(10);
   const [refreshMs, setRefreshMs] = useState(1500);
+  const [heatmapWindowSeconds, setHeatmapWindowSeconds] = useState(300);
+  const [bucketSeconds, setBucketSeconds] = useState(10);
   const [cameraId, setCameraId] = useState("");
   const [animalId, setAnimalId] = useState("");
   const [summary, setSummary] = useState(null);
+  const [heatmap, setHeatmap] = useState(null);
   const [healthRows, setHealthRows] = useState([]);
   const [error, setError] = useState("");
 
@@ -21,7 +24,7 @@ export default function ZoneLivePanel() {
   async function refresh() {
     setError("");
     try {
-      const [summaryData, healthData] = await Promise.all([
+      const [summaryData, healthData, heatmapData] = await Promise.all([
         fetchLiveZoneSummary({
           apiBase,
           apiKey,
@@ -39,9 +42,21 @@ export default function ZoneLivePanel() {
           role,
           userId,
         }),
+        fetchLiveZoneHeatmap({
+          apiBase,
+          apiKey,
+          sessionToken,
+          role,
+          userId,
+          windowSeconds: heatmapWindowSeconds,
+          bucketSeconds,
+          cameraId,
+          animalId,
+        }),
       ]);
       setSummary(summaryData);
       setHealthRows(healthData);
+      setHeatmap(heatmapData);
     } catch (e) {
       setError(String(e.message || e));
     }
@@ -56,7 +71,7 @@ export default function ZoneLivePanel() {
     const tick = setInterval(refresh, Math.max(500, Number(refreshMs) || 1500));
     return () => clearInterval(tick);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshMs, windowSeconds, cameraId, animalId, role, userId, sessionToken]);
+  }, [refreshMs, windowSeconds, heatmapWindowSeconds, bucketSeconds, cameraId, animalId, role, userId, sessionToken]);
 
   return (
     <section className="panel">
@@ -74,6 +89,18 @@ export default function ZoneLivePanel() {
           value={refreshMs}
           onChange={(e) => setRefreshMs(Number(e.target.value || 1500))}
           placeholder="refresh_ms"
+        />
+        <input
+          type="number"
+          value={heatmapWindowSeconds}
+          onChange={(e) => setHeatmapWindowSeconds(Number(e.target.value || 300))}
+          placeholder="heatmap_window_sec"
+        />
+        <input
+          type="number"
+          value={bucketSeconds}
+          onChange={(e) => setBucketSeconds(Number(e.target.value || 10))}
+          placeholder="bucket_sec"
         />
         <input placeholder="camera_id(optional)" value={cameraId} onChange={(e) => setCameraId(e.target.value)} />
         <input placeholder="animal_id(optional)" value={animalId} onChange={(e) => setAnimalId(e.target.value)} />
@@ -105,6 +132,37 @@ export default function ZoneLivePanel() {
             </div>
           </article>
         ))}
+      </div>
+
+      <div className="divider" />
+      <h3>Zone Heatmap</h3>
+      <p className="muted">
+        {heatmap?.window_seconds ?? heatmapWindowSeconds}s / {heatmap?.bucket_seconds ?? bucketSeconds}s (
+        {heatmap?.bucket_count ?? 0} buckets)
+      </p>
+      <div className="heatmap">
+        {(heatmap?.zones || []).map((zone) => {
+          const max = Math.max(1, zone.max_bucket_count || 1);
+          return (
+            <div className="heatmap-row" key={zone.zone_id}>
+              <div className="heatmap-label">{zone.zone_id}</div>
+              <div className="heatmap-bars">
+                {zone.counts.map((count, idx) => (
+                  <div
+                    key={`${zone.zone_id}-${idx}`}
+                    className="heatmap-bar"
+                    style={{
+                      height: `${Math.max(8, (count / max) * 44)}px`,
+                      opacity: Math.max(0.18, count / max),
+                    }}
+                    title={`bucket ${idx + 1}: ${count}`}
+                  />
+                ))}
+              </div>
+              <div className="heatmap-total">{zone.total_observations}</div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

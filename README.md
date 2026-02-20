@@ -38,6 +38,7 @@ VITE_API_KEY=change-me
 2. `window_seconds`, `refresh_ms` 설정
 3. 필요 시 `camera_id`, `animal_id`로 필터
 4. 존 카드에서 `관측/트랙/동물 수`와 카메라 상태를 실시간 확인
+5. 아래 `Zone Heatmap`에서 시간 버킷별 존 트래픽 추이를 확인
 
 ## 빌드
 ```bash
@@ -52,6 +53,7 @@ npm run preview
 - `GET /live/cameras/{camera_id}/playback-url`
 - `GET /live/tracks/latest`
 - `GET /live/zones/summary`
+- `GET /live/zones/heatmap`
 - `WS /ws/live-tracks`
 
 ## 배포
