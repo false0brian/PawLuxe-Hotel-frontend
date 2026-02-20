@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { closeStreamSession, fetchBookings, fetchPetStatus, issueStreamToken, verifyStreamToken } from "../lib/api";
+import {
+  closeStreamSession,
+  fetchBookingReport,
+  fetchBookings,
+  fetchPetStatus,
+  issueStreamToken,
+  verifyStreamToken,
+} from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 export function useOwnerLive() {
@@ -10,6 +17,7 @@ export function useOwnerLive() {
   const [loading, setLoading] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [verifyResult, setVerifyResult] = useState(null);
+  const [report, setReport] = useState(null);
 
   const validation = useMemo(() => {
     const errs = [];
@@ -153,10 +161,35 @@ export function useOwnerLive() {
     }
   }
 
+  async function loadReport() {
+    if (!ownerForm.bookingId.trim()) {
+      setError("booking_id를 먼저 선택하세요.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const data = await fetchBookingReport({
+        apiBase,
+        apiKey,
+        bookingId: ownerForm.bookingId.trim(),
+        role,
+        userId,
+        sessionToken,
+      });
+      setReport(data);
+    } catch (e) {
+      setError(`리포트 조회 실패: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return {
     status,
     tokenResult,
     verifyResult,
+    report,
     bookings,
     error,
     loading,
@@ -166,5 +199,6 @@ export function useOwnerLive() {
     verifyTokenSession,
     closeTokenSession,
     loadBookings,
+    loadReport,
   };
 }

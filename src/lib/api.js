@@ -178,6 +178,21 @@ export async function fetchBookings({
   return res.json();
 }
 
+export async function fetchBookingReport({
+  apiBase,
+  apiKey,
+  bookingId,
+  sessionToken = "",
+  role = "owner",
+  userId = "",
+}) {
+  const res = await fetch(`${apiBase}/reports/bookings/${encodeURIComponent(bookingId)}`, {
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
 export async function fetchCameraPlaybackUrl({
   apiBase,
   apiKey,

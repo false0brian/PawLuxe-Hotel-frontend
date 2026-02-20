@@ -9,6 +9,7 @@ export default function OwnerLivePanel() {
     status,
     tokenResult,
     verifyResult,
+    report,
     bookings,
     error,
     loading,
@@ -18,6 +19,7 @@ export default function OwnerLivePanel() {
     verifyTokenSession,
     closeTokenSession,
     loadBookings,
+    loadReport,
   } =
     useOwnerLive();
   const [viewerSessionId, setViewerSessionId] = useState("device-a");
@@ -78,6 +80,9 @@ export default function OwnerLivePanel() {
         <button onClick={createToken} disabled={loading}>
           {loading ? "발급중..." : "라이브 토큰 발급"}
         </button>
+        <button className="ghost" onClick={loadReport} disabled={loading}>
+          {loading ? "조회중..." : "오늘 리포트/클립 조회"}
+        </button>
         <input
           placeholder="viewer_session_id"
           value={viewerSessionId}
@@ -106,6 +111,24 @@ export default function OwnerLivePanel() {
       {tokenResult?.watermark ? <p className="muted">워터마크: {tokenResult.watermark}</p> : null}
       {tokenResult ? <pre>{JSON.stringify(tokenResult, null, 2)}</pre> : null}
       {verifyResult ? <pre>{JSON.stringify(verifyResult, null, 2)}</pre> : null}
+      {report ? (
+        <>
+          <div className="divider" />
+          <h3>오늘 클립</h3>
+          <p className="muted">총 {report?.summary?.clip_count ?? 0}개</p>
+          <div className="cards">
+            {(report.clips || []).slice(0, 8).map((clip) => (
+              <article className="card" key={clip.clip_id}>
+                <strong>{clip.event_type === "auto_highlight" ? "Auto Highlight" : clip.event_type || "clip"}</strong>
+                <span>clip_id: {clip.clip_id}</span>
+                <span>start: {clip.start_ts}</span>
+                <span>end: {clip.end_ts}</span>
+                <span className="muted">path: {clip.path}</span>
+              </article>
+            ))}
+          </div>
+        </>
+      ) : null}
     </section>
   );
 }
