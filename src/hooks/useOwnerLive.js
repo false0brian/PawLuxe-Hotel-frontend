@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { fetchBookings, fetchPetStatus, issueStreamToken } from "../lib/api";
+import { closeStreamSession, fetchBookings, fetchPetStatus, issueStreamToken, verifyStreamToken } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 export function useOwnerLive() {
@@ -9,6 +9,7 @@ export function useOwnerLive() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [bookings, setBookings] = useState([]);
+  const [verifyResult, setVerifyResult] = useState(null);
 
   const validation = useMemo(() => {
     const errs = [];
@@ -37,6 +38,54 @@ export function useOwnerLive() {
       setStatus(data);
     } catch (e) {
       setError(`상태 조회 실패: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function verifyTokenSession({ token, camId, viewerSessionId }) {
+    if (!token?.trim()) {
+      setError("토큰이 없습니다. 먼저 발급하세요.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const data = await verifyStreamToken({
+        apiBase,
+        apiKey,
+        token: token.trim(),
+        camId: camId?.trim(),
+        viewerSessionId: viewerSessionId?.trim(),
+        role: "system",
+      });
+      setVerifyResult(data);
+    } catch (e) {
+      setError(`세션 verify 실패: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function closeTokenSession({ token, camId, viewerSessionId }) {
+    if (!token?.trim() || !viewerSessionId?.trim()) {
+      setError("token, viewer_session_id를 입력하세요.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const data = await closeStreamSession({
+        apiBase,
+        apiKey,
+        token: token.trim(),
+        camId: camId?.trim(),
+        viewerSessionId: viewerSessionId.trim(),
+        role: "system",
+      });
+      setVerifyResult(data);
+    } catch (e) {
+      setError(`세션 종료 실패: ${e.message}`);
     } finally {
       setLoading(false);
     }
@@ -107,12 +156,15 @@ export function useOwnerLive() {
   return {
     status,
     tokenResult,
+    verifyResult,
     bookings,
     error,
     loading,
     validation,
     loadStatus,
     createToken,
+    verifyTokenSession,
+    closeTokenSession,
     loadBookings,
   };
 }

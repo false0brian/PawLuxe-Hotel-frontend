@@ -51,6 +51,52 @@ export async function issueStreamToken({ apiBase, apiKey, ownerId, bookingId, pe
   return res.json();
 }
 
+export async function verifyStreamToken({
+  apiBase,
+  apiKey,
+  token,
+  camId = "",
+  viewerSessionId = "",
+  role = "system",
+  userId = "",
+  sessionToken = "",
+}) {
+  const res = await fetch(`${apiBase}/auth/stream-verify`, {
+    method: "POST",
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+    body: JSON.stringify({
+      token,
+      cam_id: camId || undefined,
+      viewer_session_id: viewerSessionId || undefined,
+    }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
+export async function closeStreamSession({
+  apiBase,
+  apiKey,
+  token,
+  camId = "",
+  viewerSessionId,
+  role = "system",
+  userId = "",
+  sessionToken = "",
+}) {
+  const res = await fetch(`${apiBase}/auth/stream-session/close`, {
+    method: "POST",
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+    body: JSON.stringify({
+      token,
+      cam_id: camId || undefined,
+      viewer_session_id: viewerSessionId,
+    }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
 export async function moveZone({ apiBase, apiKey, sessionToken = "", role = "staff", userId, petId, toZoneId }) {
   const res = await fetch(`${apiBase}/staff/move-zone`, {
     method: "POST",

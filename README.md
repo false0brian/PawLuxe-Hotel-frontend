@@ -4,6 +4,7 @@ PawLuxe 보호자/스태프/관리자 콘솔 프론트엔드 (React + Vite).
 
 ## 화면 범위 (MVP)
 - Owner Live: 펫 상태 조회, 스트림 토큰 발급
+- Owner Stream Session: verify/close로 동시 세션 제한 동작 점검
 - Staff Board: 운영 액션(이동/기록/클립/사고) 중심 UI
 - Staff Alerts: 규칙 기반 알림 조회/ack/resolved
 - Admin Health: 카메라 헬스 모니터링
@@ -63,6 +64,8 @@ npm run preview
 - `GET /live/zones/heatmap`
 - `WS /ws/live-tracks`
 - `WS /ws/staff-alerts`
+- `POST /auth/stream-verify`
+- `POST /auth/stream-session/close`
 - `GET /staff/alerts`
 - `POST /staff/alerts/{alert_id}/ack`
 - `POST /system/alerts/evaluate`

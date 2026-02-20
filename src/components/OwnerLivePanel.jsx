@@ -1,12 +1,28 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useOwnerLive } from "../hooks/useOwnerLive";
 import { useAppStore } from "../store/appStore";
 
 export default function OwnerLivePanel() {
   const ownerForm = useAppStore((s) => s.ownerForm);
   const setOwnerFormField = useAppStore((s) => s.setOwnerFormField);
-  const { status, tokenResult, bookings, error, loading, validation, loadStatus, createToken, loadBookings } =
+  const {
+    status,
+    tokenResult,
+    verifyResult,
+    bookings,
+    error,
+    loading,
+    validation,
+    loadStatus,
+    createToken,
+    verifyTokenSession,
+    closeTokenSession,
+    loadBookings,
+  } =
     useOwnerLive();
+  const [viewerSessionId, setViewerSessionId] = useState("device-a");
+  const [verifyCamId, setVerifyCamId] = useState("");
+  const resolvedCamId = useMemo(() => verifyCamId || tokenResult?.cam_ids?.[0] || "", [verifyCamId, tokenResult]);
 
   return (
     <section className="panel">
@@ -62,11 +78,34 @@ export default function OwnerLivePanel() {
         <button onClick={createToken} disabled={loading}>
           {loading ? "발급중..." : "라이브 토큰 발급"}
         </button>
+        <input
+          placeholder="viewer_session_id"
+          value={viewerSessionId}
+          onChange={(e) => setViewerSessionId(e.target.value)}
+        />
+        <input placeholder="verify_cam_id(optional)" value={verifyCamId} onChange={(e) => setVerifyCamId(e.target.value)} />
+        <button
+          className="ghost"
+          onClick={() =>
+            verifyTokenSession({ token: tokenResult?.token || "", camId: resolvedCamId, viewerSessionId })
+          }
+          disabled={loading}
+        >
+          세션 verify
+        </button>
+        <button
+          className="ghost"
+          onClick={() => closeTokenSession({ token: tokenResult?.token || "", camId: resolvedCamId, viewerSessionId })}
+          disabled={loading}
+        >
+          세션 종료
+        </button>
       </div>
       {error ? <p className="error">{error}</p> : null}
       {status ? <pre>{JSON.stringify(status, null, 2)}</pre> : null}
       {tokenResult?.watermark ? <p className="muted">워터마크: {tokenResult.watermark}</p> : null}
       {tokenResult ? <pre>{JSON.stringify(tokenResult, null, 2)}</pre> : null}
+      {verifyResult ? <pre>{JSON.stringify(verifyResult, null, 2)}</pre> : null}
     </section>
   );
 }
