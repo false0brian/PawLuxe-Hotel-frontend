@@ -2,13 +2,21 @@ import React, { useState } from "react";
 import { useStaffOps } from "../hooks/useStaffOps";
 import { useStaffAlerts } from "../hooks/useStaffAlerts";
 import { useTodayBoard } from "../hooks/useTodayBoard";
-import { ackStaffAlert, evaluateAlerts, executeStaffAlertAction, fetchStaffAlerts, generateAutoClips } from "../lib/api";
+import {
+  ackStaffAlert,
+  evaluateAlerts,
+  executeStaffAlertAction,
+  fetchStaffActivityFeed,
+  fetchStaffAlerts,
+  generateAutoClips,
+} from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 export default function StaffBoard() {
   const { apiBase, apiKey, role, userId, sessionToken, staffForm, setStaffFormField, mergeStaffForm } = useAppStore();
   const [alerts, setAlerts] = useState([]);
   const [alertError, setAlertError] = useState("");
+  const [activityFeed, setActivityFeed] = useState([]);
   const [autoClipWindow, setAutoClipWindow] = useState(180);
   const [autoClipMax, setAutoClipMax] = useState(5);
   const [autoClipResult, setAutoClipResult] = useState(null);
@@ -37,6 +45,15 @@ export default function StaffBoard() {
     }
   }
 
+  async function loadActivityFeed() {
+    try {
+      const data = await fetchStaffActivityFeed({ apiBase, apiKey, role, userId, sessionToken, limit: 20 });
+      setActivityFeed(data.items || []);
+    } catch (_e) {
+      // Keep feed best-effort without interrupting primary board actions.
+    }
+  }
+
   async function runAlertEvaluate() {
     setAlertError("");
     try {
@@ -48,6 +65,7 @@ export default function StaffBoard() {
         sessionToken,
       });
       await loadAlerts();
+      await loadActivityFeed();
     } catch (e) {
       setAlertError(`알림 평가 실패: ${e.message}`);
     }
@@ -58,6 +76,7 @@ export default function StaffBoard() {
     try {
       await ackStaffAlert({ apiBase, apiKey, role, userId, sessionToken, alertId, status });
       await loadAlerts();
+      await loadActivityFeed();
     } catch (e) {
       setAlertError(`알림 처리 실패: ${e.message}`);
     }
@@ -68,6 +87,7 @@ export default function StaffBoard() {
     try {
       await executeStaffAlertAction({ apiBase, apiKey, role, userId, sessionToken, alertId, actionId });
       await loadAlerts();
+      await loadActivityFeed();
     } catch (e) {
       setAlertError(`추천 액션 실패: ${e.message}`);
     }
@@ -86,6 +106,7 @@ export default function StaffBoard() {
         maxClips: autoClipMax,
       });
       setAutoClipResult(data);
+      await loadActivityFeed();
     } catch (e) {
       setAlertError(`자동 클립 생성 실패: ${e.message}`);
     }
@@ -102,6 +123,7 @@ export default function StaffBoard() {
           {boardLoading ? "보드 갱신중..." : "보드 새로고침"}
         </button>
         <button className="ghost" onClick={loadAlerts}>알림 조회</button>
+        <button className="ghost" onClick={loadActivityFeed}>활동 피드 조회</button>
         <button className="ghost" onClick={runAlertEvaluate}>알림 평가 실행</button>
         <button className="ghost" onClick={runAutoClipGenerate}>자동 클립 생성</button>
         <button className="ghost" onClick={reconnect}>알림 WS 재연결</button>
@@ -267,6 +289,18 @@ export default function StaffBoard() {
       </div>
       {error ? <p className="error">{error}</p> : null}
       {result ? <pre>{JSON.stringify(result, null, 2)}</pre> : null}
+      <div className="divider" />
+      <h3>Activity Feed</h3>
+      <div className="cards">
+        {activityFeed.map((it, idx) => (
+          <article className="card" key={`${it.kind}-${it.ts}-${idx}`}>
+            <strong>{it.kind}</strong>
+            <span>{it.summary}</span>
+            <span className="muted">ts: {it.ts}</span>
+            <span className="muted">staff: {it.staff_id ?? "-"}</span>
+          </article>
+        ))}
+      </div>
     </section>
   );
 }

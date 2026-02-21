@@ -162,6 +162,21 @@ export async function fetchStaffTodayBoard({
   return res.json();
 }
 
+export async function fetchStaffActivityFeed({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "staff",
+  userId = "staff-1",
+  limit = 30,
+}) {
+  const res = await fetch(`${apiBase}/staff/activity-feed?limit=${limit}`, {
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
 export async function fetchBookings({
   apiBase,
   apiKey,
