@@ -131,10 +131,18 @@ export default function StaffBoard() {
       <p className="muted">Alerts WS connected: {String(alertsConnected)}</p>
       {autoClipResult ? <pre>{JSON.stringify(autoClipResult, null, 2)}</pre> : null}
       {board ? (
-        <p className="muted">
-          Active {board.total_active_bookings}건 | Zones {JSON.stringify(board.zone_counts)} | Actions{" "}
-          {JSON.stringify(board.action_counts)}
-        </p>
+        <>
+          <p className="muted">
+            Active {board.total_active_bookings}건 | Zones {JSON.stringify(board.zone_counts)} | Actions{" "}
+            {JSON.stringify(board.action_counts)}
+          </p>
+          <p className="muted">
+            Alerts open:{board.alerts_summary?.open_count ?? 0} | critical:{board.alerts_summary?.critical_open_count ?? 0}
+            {" "} | acked24h:{board.alerts_summary?.acked_24h_count ?? 0} | resolved24h:
+            {board.alerts_summary?.resolved_24h_count ?? 0} | avgAckSec:
+            {board.alerts_summary?.avg_ack_seconds_24h ?? "-"}
+          </p>
+        </>
       ) : null}
       {shownAlerts.length > 0 ? (
         <div className="cards">

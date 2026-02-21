@@ -9,6 +9,7 @@ PawLuxe 보호자/스태프/관리자 콘솔 프론트엔드 (React + Vite).
 - Owner Clip Playback: 클립 카드의 `재생` 버튼으로 URL 해석 후 새 탭 재생
 - Staff Board: 운영 액션(이동/기록/클립/사고) 중심 UI
 - Staff Alerts: 규칙 기반 알림 조회/ack/resolved
+- Staff KPI: today-board 기반 알림 운영지표(open/critical/avgAck) 표시
 - Admin Health: 카메라 헬스 모니터링
 - Zone Live: 존 단위 실시간 관측/트랙/카메라 헬스 집계
 - Live Overlay: 카메라 영상 위 객체 bbox 실시간 오버레이
