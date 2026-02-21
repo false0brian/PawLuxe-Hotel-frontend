@@ -267,6 +267,25 @@ export async function fetchLiveZoneHeatmap({
   return res.json();
 }
 
+export async function fetchLiveZoneRisk({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "staff",
+  userId = "staff-1",
+  windowSeconds = 60,
+  staleSeconds = 15,
+}) {
+  const qs = new URLSearchParams();
+  qs.set("window_seconds", String(windowSeconds));
+  qs.set("stale_seconds", String(staleSeconds));
+  const res = await fetch(`${apiBase}/live/zones/risk?${qs.toString()}`, {
+    headers: authHeaders({ apiKey, sessionToken, role, userId }),
+  });
+  if (!res.ok) await parseError(res);
+  return res.json();
+}
+
 export async function evaluateAlerts({
   apiBase,
   apiKey,

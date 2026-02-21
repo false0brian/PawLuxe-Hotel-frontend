@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { fetchCameraHealth, fetchLiveZoneHeatmap, fetchLiveZoneSummary } from "../lib/api";
+import { fetchCameraHealth, fetchLiveZoneHeatmap, fetchLiveZoneRisk, fetchLiveZoneSummary } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 export default function ZoneLivePanel() {
@@ -8,10 +8,13 @@ export default function ZoneLivePanel() {
   const [refreshMs, setRefreshMs] = useState(1500);
   const [heatmapWindowSeconds, setHeatmapWindowSeconds] = useState(300);
   const [bucketSeconds, setBucketSeconds] = useState(10);
+  const [riskWindowSeconds, setRiskWindowSeconds] = useState(60);
+  const [riskStaleSeconds, setRiskStaleSeconds] = useState(15);
   const [cameraId, setCameraId] = useState("");
   const [animalId, setAnimalId] = useState("");
   const [summary, setSummary] = useState(null);
   const [heatmap, setHeatmap] = useState(null);
+  const [risk, setRisk] = useState(null);
   const [healthRows, setHealthRows] = useState([]);
   const [error, setError] = useState("");
 
@@ -20,11 +23,16 @@ export default function ZoneLivePanel() {
     for (const row of healthRows) out[row.camera_id] = row;
     return out;
   }, [healthRows]);
+  const riskByZone = useMemo(() => {
+    const out = {};
+    for (const row of risk?.zones || []) out[row.zone_id] = row;
+    return out;
+  }, [risk]);
 
   async function refresh() {
     setError("");
     try {
-      const [summaryData, healthData, heatmapData] = await Promise.all([
+      const [summaryData, healthData, heatmapData, riskData] = await Promise.all([
         fetchLiveZoneSummary({
           apiBase,
           apiKey,
@@ -53,10 +61,20 @@ export default function ZoneLivePanel() {
           cameraId,
           animalId,
         }),
+        fetchLiveZoneRisk({
+          apiBase,
+          apiKey,
+          sessionToken,
+          role,
+          userId,
+          windowSeconds: riskWindowSeconds,
+          staleSeconds: riskStaleSeconds,
+        }),
       ]);
       setSummary(summaryData);
       setHealthRows(healthData);
       setHeatmap(heatmapData);
+      setRisk(riskData);
     } catch (e) {
       setError(String(e.message || e));
     }
@@ -71,7 +89,19 @@ export default function ZoneLivePanel() {
     const tick = setInterval(refresh, Math.max(500, Number(refreshMs) || 1500));
     return () => clearInterval(tick);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshMs, windowSeconds, heatmapWindowSeconds, bucketSeconds, cameraId, animalId, role, userId, sessionToken]);
+  }, [
+    refreshMs,
+    windowSeconds,
+    heatmapWindowSeconds,
+    bucketSeconds,
+    riskWindowSeconds,
+    riskStaleSeconds,
+    cameraId,
+    animalId,
+    role,
+    userId,
+    sessionToken,
+  ]);
 
   return (
     <section className="panel">
@@ -102,6 +132,18 @@ export default function ZoneLivePanel() {
           onChange={(e) => setBucketSeconds(Number(e.target.value || 10))}
           placeholder="bucket_sec"
         />
+        <input
+          type="number"
+          value={riskWindowSeconds}
+          onChange={(e) => setRiskWindowSeconds(Number(e.target.value || 60))}
+          placeholder="risk_window_sec"
+        />
+        <input
+          type="number"
+          value={riskStaleSeconds}
+          onChange={(e) => setRiskStaleSeconds(Number(e.target.value || 15))}
+          placeholder="risk_stale_sec"
+        />
         <input placeholder="camera_id(optional)" value={cameraId} onChange={(e) => setCameraId(e.target.value)} />
         <input placeholder="animal_id(optional)" value={animalId} onChange={(e) => setAnimalId(e.target.value)} />
         <button onClick={refresh}>즉시 새로고침</button>
@@ -118,6 +160,13 @@ export default function ZoneLivePanel() {
             <span>관측: {zone.observation_count}</span>
             <span>트랙: {zone.track_count}</span>
             <span>동물: {zone.animal_count}</span>
+            <span>
+              위험도: {riskByZone[zone.zone_id]?.risk_score ?? 0} (open:{riskByZone[zone.zone_id]?.open_alert_count ?? 0}
+              , critical:{riskByZone[zone.zone_id]?.critical_alert_count ?? 0})
+            </span>
+            {riskByZone[zone.zone_id]?.top_reasons?.length ? (
+              <span className="muted">reasons: {riskByZone[zone.zone_id].top_reasons.join(", ")}</span>
+            ) : null}
             <span className="muted">last_ts: {zone.last_ts ?? "-"}</span>
             <div className="row">
               {zone.camera_ids.map((camId) => {
