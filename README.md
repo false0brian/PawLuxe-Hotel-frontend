@@ -45,6 +45,7 @@ VITE_API_KEY=change-me
 4. 존 카드에서 `관측/트랙/동물 수`와 카메라 상태를 실시간 확인
 5. 아래 `Zone Heatmap`에서 시간 버킷별 존 트래픽 추이를 확인
 6. 카드의 `위험도`/`reasons`로 존별 운영 우선순위를 확인
+7. 상단 `Top Risk Zones`에서 즉시 대응 우선 존을 고정 확인
 
 ## Staff Alerts 사용
 1. `Staff` 탭에서 `알림 평가 실행` 클릭

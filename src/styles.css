@@ -150,6 +150,24 @@ button {
 .zone-card {
   align-content: start;
 }
+.risk-top-card {
+  border-width: 2px;
+  border-color: #d35a2e;
+  background: linear-gradient(180deg, #fff4e8 0%, #fff9f3 100%);
+}
+.risk-score {
+  font-size: 18px;
+  font-weight: 800;
+  color: #8f2f13;
+}
+.zone-risk-warning {
+  border-color: #d7a53c;
+  background: #fff8e8;
+}
+.zone-risk-critical {
+  border-color: #b53920;
+  background: #fff0ec;
+}
 .heatmap {
   display: grid;
   gap: 8px;

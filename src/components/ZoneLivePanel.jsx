@@ -28,6 +28,11 @@ export default function ZoneLivePanel() {
     for (const row of risk?.zones || []) out[row.zone_id] = row;
     return out;
   }, [risk]);
+  const topRiskZones = useMemo(() => {
+    return [...(risk?.zones || [])]
+      .sort((a, b) => Number(b.risk_score || 0) - Number(a.risk_score || 0))
+      .slice(0, 3);
+  }, [risk]);
 
   async function refresh() {
     setError("");
@@ -153,9 +158,35 @@ export default function ZoneLivePanel() {
         window: {summary?.window_seconds ?? windowSeconds}s | zones: {summary?.zone_count ?? 0} | observations:{" "}
         {summary?.total_observations ?? 0}
       </p>
+
+      <div className="divider" />
+      <h3>Top Risk Zones</h3>
+      <div className="cards">
+        {topRiskZones.map((zone) => (
+          <article className="card risk-top-card" key={`top-${zone.zone_id}`}>
+            <strong>{zone.zone_id}</strong>
+            <span className="risk-score">risk {zone.risk_score}</span>
+            <span>open:{zone.open_alert_count} / critical:{zone.critical_alert_count}</span>
+            <span>stale_cam:{zone.stale_camera_count} / obs:{zone.observation_count}</span>
+            {zone.top_reasons?.length ? <span className="muted">reasons: {zone.top_reasons.join(", ")}</span> : null}
+          </article>
+        ))}
+      </div>
+
+      <div className="divider" />
+      <h3>Zone Cards</h3>
       <div className="cards">
         {(summary?.zones || []).map((zone) => (
-          <article className="card zone-card" key={zone.zone_id}>
+          <article
+            className={`card zone-card ${
+              Number(riskByZone[zone.zone_id]?.risk_score || 0) >= 70
+                ? "zone-risk-critical"
+                : Number(riskByZone[zone.zone_id]?.risk_score || 0) >= 40
+                  ? "zone-risk-warning"
+                  : ""
+            }`}
+            key={zone.zone_id}
+          >
             <strong>{zone.zone_id}</strong>
             <span>관측: {zone.observation_count}</span>
             <span>트랙: {zone.track_count}</span>
