@@ -3,7 +3,7 @@ import { fetchCameraHealth, fetchLiveZoneHeatmap, fetchLiveZoneRisk, fetchLiveZo
 import { useAppStore } from "../store/appStore";
 
 export default function ZoneLivePanel() {
-  const { apiBase, apiKey, role, userId, sessionToken } = useAppStore();
+  const { apiBase, apiKey, role, userId, sessionToken, setTab, mergeStaffForm } = useAppStore();
   const [windowSeconds, setWindowSeconds] = useState(10);
   const [refreshMs, setRefreshMs] = useState(1500);
   const [heatmapWindowSeconds, setHeatmapWindowSeconds] = useState(300);
@@ -169,6 +169,15 @@ export default function ZoneLivePanel() {
             <span>open:{zone.open_alert_count} / critical:{zone.critical_alert_count}</span>
             <span>stale_cam:{zone.stale_camera_count} / obs:{zone.observation_count}</span>
             {zone.top_reasons?.length ? <span className="muted">reasons: {zone.top_reasons.join(", ")}</span> : null}
+            <button
+              className="ghost"
+              onClick={() => {
+                mergeStaffForm({ toZoneId: zone.zone_id });
+                setTab("staff");
+              }}
+            >
+              즉시 이동 입력
+            </button>
           </article>
         ))}
       </div>

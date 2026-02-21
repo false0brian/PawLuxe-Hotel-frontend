@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import OwnerLivePanel from "./components/OwnerLivePanel";
 import StaffBoard from "./components/StaffBoard";
 import AdminHealthPanel from "./components/AdminHealthPanel";
@@ -15,7 +15,8 @@ const TABS = [
 ];
 
 export default function App() {
-  const [tab, setTab] = useState("owner");
+  const tab = useAppStore((s) => s.tab);
+  const setTab = useAppStore((s) => s.setTab);
   const role = useAppStore((s) => s.role);
   const userId = useAppStore((s) => s.userId);
   const sessionToken = useAppStore((s) => s.sessionToken);

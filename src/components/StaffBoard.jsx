@@ -6,14 +6,7 @@ import { ackStaffAlert, evaluateAlerts, fetchStaffAlerts, generateAutoClips } fr
 import { useAppStore } from "../store/appStore";
 
 export default function StaffBoard() {
-  const { apiBase, apiKey, role, userId, sessionToken } = useAppStore();
-  const [form, setForm] = useState({
-    petId: "",
-    bookingId: "",
-    toZoneId: "",
-    type: "feeding",
-    value: "",
-  });
+  const { apiBase, apiKey, role, userId, sessionToken, staffForm, setStaffFormField, mergeStaffForm } = useAppStore();
   const [alerts, setAlerts] = useState([]);
   const [alertError, setAlertError] = useState("");
   const [autoClipWindow, setAutoClipWindow] = useState(180);
@@ -171,25 +164,23 @@ export default function StaffBoard() {
             <div className="row">
               <button
                 onClick={() =>
-                  setForm((s) => ({
-                    ...s,
+                  mergeStaffForm({
                     petId: it.pet_id ?? "",
                     bookingId: it.booking_id ?? "",
                     toZoneId: it.current_zone ?? "",
-                  }))
+                  })
                 }
               >
                 이동
               </button>
               <button
                 onClick={() =>
-                  setForm((s) => ({
-                    ...s,
+                  mergeStaffForm({
                     petId: it.pet_id ?? "",
                     bookingId: it.booking_id ?? "",
                     type: it.next_action === "medication_followup" ? "medication" : "feeding",
                     value: it.next_action,
-                  }))
+                  })
                 }
               >
                 기록
@@ -205,22 +196,22 @@ export default function StaffBoard() {
       <div className="grid3">
         <input
           placeholder="pet_id"
-          value={form.petId}
-          onChange={(e) => setForm((s) => ({ ...s, petId: e.target.value }))}
+          value={staffForm.petId}
+          onChange={(e) => setStaffFormField("petId", e.target.value)}
         />
         <input
           placeholder="booking_id"
-          value={form.bookingId}
-          onChange={(e) => setForm((s) => ({ ...s, bookingId: e.target.value }))}
+          value={staffForm.bookingId}
+          onChange={(e) => setStaffFormField("bookingId", e.target.value)}
         />
         <input
           placeholder="to_zone_id"
-          value={form.toZoneId}
-          onChange={(e) => setForm((s) => ({ ...s, toZoneId: e.target.value }))}
+          value={staffForm.toZoneId}
+          onChange={(e) => setStaffFormField("toZoneId", e.target.value)}
         />
       </div>
       <div className="row">
-        <select value={form.type} onChange={(e) => setForm((s) => ({ ...s, type: e.target.value }))}>
+        <select value={staffForm.type} onChange={(e) => setStaffFormField("type", e.target.value)}>
           <option value="feeding">feeding</option>
           <option value="potty">potty</option>
           <option value="walk">walk</option>
@@ -229,17 +220,24 @@ export default function StaffBoard() {
         </select>
         <input
           placeholder="value (예: ate 80%)"
-          value={form.value}
-          onChange={(e) => setForm((s) => ({ ...s, value: e.target.value }))}
+          value={staffForm.value}
+          onChange={(e) => setStaffFormField("value", e.target.value)}
         />
       </div>
       <div className="row">
-        <button disabled={busy} onClick={() => submitMove({ petId: form.petId, toZoneId: form.toZoneId })}>
+        <button disabled={busy} onClick={() => submitMove({ petId: staffForm.petId, toZoneId: staffForm.toZoneId })}>
           {busy ? "처리중..." : "존 이동 실행"}
         </button>
         <button
           disabled={busy}
-          onClick={() => submitLog({ petId: form.petId, bookingId: form.bookingId, type: form.type, value: form.value })}
+          onClick={() =>
+            submitLog({
+              petId: staffForm.petId,
+              bookingId: staffForm.bookingId,
+              type: staffForm.type,
+              value: staffForm.value,
+            })
+          }
         >
           {busy ? "처리중..." : "케어 로그 기록"}
         </button>

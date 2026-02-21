@@ -46,6 +46,7 @@ VITE_API_KEY=change-me
 5. 아래 `Zone Heatmap`에서 시간 버킷별 존 트래픽 추이를 확인
 6. 카드의 `위험도`/`reasons`로 존별 운영 우선순위를 확인
 7. 상단 `Top Risk Zones`에서 즉시 대응 우선 존을 고정 확인
+8. `즉시 이동 입력` 클릭 시 Staff 탭으로 전환되며 `to_zone_id`가 자동 입력
 
 ## Staff Alerts 사용
 1. `Staff` 탭에서 `알림 평가 실행` 클릭
