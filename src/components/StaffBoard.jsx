@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useStaffOps } from "../hooks/useStaffOps";
 import { useStaffAlerts } from "../hooks/useStaffAlerts";
 import { useTodayBoard } from "../hooks/useTodayBoard";
-import { ackStaffAlert, evaluateAlerts, fetchStaffAlerts, generateAutoClips } from "../lib/api";
+import { ackStaffAlert, evaluateAlerts, executeStaffAlertAction, fetchStaffAlerts, generateAutoClips } from "../lib/api";
 import { useAppStore } from "../store/appStore";
 
 export default function StaffBoard() {
@@ -60,6 +60,16 @@ export default function StaffBoard() {
       await loadAlerts();
     } catch (e) {
       setAlertError(`알림 처리 실패: ${e.message}`);
+    }
+  }
+
+  async function runAlertAction(alertId, actionId) {
+    setAlertError("");
+    try {
+      await executeStaffAlertAction({ apiBase, apiKey, role, userId, sessionToken, alertId, actionId });
+      await loadAlerts();
+    } catch (e) {
+      setAlertError(`추천 액션 실패: ${e.message}`);
     }
   }
 
@@ -145,6 +155,19 @@ export default function StaffBoard() {
               <span>sev: {it.severity} | status: {it.status}</span>
               <span>{it.message}</span>
               <span className="muted">zone:{it.zone_id ?? "-"} cam:{it.camera_id ?? "-"}</span>
+              {(it.recommended_actions || []).length > 0 ? (
+                <div className="row">
+                  {(it.recommended_actions || []).slice(0, 3).map((act) => (
+                    <button
+                      key={`${it.alert_id}-${act.action_id}`}
+                      className="ghost"
+                      onClick={() => runAlertAction(it.alert_id, act.action_id)}
+                    >
+                      {act.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className="row">
                 <button className="ghost" onClick={() => resolveAlert(it.alert_id, "acked")}>ack</button>
                 <button className="ghost" onClick={() => resolveAlert(it.alert_id, "resolved")}>resolve</button>

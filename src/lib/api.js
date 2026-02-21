@@ -359,3 +359,23 @@ export async function ackStaffAlert({
   if (!res.ok) await parseError(res);
   return res.json();
 }
+
+export async function executeStaffAlertAction({
+  apiBase,
+  apiKey,
+  sessionToken = "",
+  role = "staff",
+  userId = "staff-1",
+  alertId,
+  actionId,
+}) {
+  const res = await fetch(
+    `${apiBase}/staff/alerts/${encodeURIComponent(alertId)}/actions/${encodeURIComponent(actionId)}`,
+    {
+      method: "POST",
+      headers: authHeaders({ apiKey, sessionToken, role, userId }),
+    }
+  );
+  if (!res.ok) await parseError(res);
+  return res.json();
+}

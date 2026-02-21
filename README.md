@@ -54,6 +54,7 @@ VITE_API_KEY=change-me
 3. 알림 WS 연결 상태(`Alerts WS connected`) 확인
 4. 각 카드에서 `ack` 또는 `resolve` 처리
 5. `자동 클립 생성`으로 최근 트랙 기반 하이라이트를 즉시 생성
+6. 알림 카드의 추천 액션 버튼으로 즉시 대응 작업 실행
 
 ## 빌드
 ```bash
