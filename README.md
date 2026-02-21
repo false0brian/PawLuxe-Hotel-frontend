@@ -12,6 +12,7 @@ PawLuxe 보호자/스태프/관리자 콘솔 프론트엔드 (React + Vite).
 - Staff KPI: today-board 기반 알림 운영지표(open/critical/avgAck) 표시
 - Staff Activity Feed: 알림/이동/케어로그 최근 이력 조회
 - Staff Activity Feed WS: 활동 이력 실시간 자동 갱신
+- Activity Feed Focus: 항목 클릭으로 Staff form/ZoneLive 포커스 이동
 - Admin Health: 카메라 헬스 모니터링
 - Zone Live: 존 단위 실시간 관측/트랙/카메라 헬스 집계
 - Live Overlay: 카메라 영상 위 객체 bbox 실시간 오버레이

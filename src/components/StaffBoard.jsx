@@ -13,7 +13,18 @@ import {
 import { useAppStore } from "../store/appStore";
 
 export default function StaffBoard() {
-  const { apiBase, apiKey, role, userId, sessionToken, staffForm, setStaffFormField, mergeStaffForm } = useAppStore();
+  const {
+    apiBase,
+    apiKey,
+    role,
+    userId,
+    sessionToken,
+    staffForm,
+    setStaffFormField,
+    mergeStaffForm,
+    setTab,
+    setZoneFocus,
+  } = useAppStore();
   const [alerts, setAlerts] = useState([]);
   const [alertError, setAlertError] = useState("");
   const [autoClipWindow, setAutoClipWindow] = useState(180);
@@ -108,6 +119,35 @@ export default function StaffBoard() {
   }
 
   const shownAlerts = liveAlerts.length > 0 ? liveAlerts : alerts;
+
+  function focusFromActivity(item) {
+    if (!item) return;
+    if (item.kind === "zone_move") {
+      mergeStaffForm({
+        petId: item.pet_id || "",
+        toZoneId: item.to_zone_id || "",
+      });
+      setTab("staff");
+      return;
+    }
+    if (item.kind === "care_log") {
+      mergeStaffForm({
+        petId: item.pet_id || "",
+        bookingId: item.booking_id || "",
+        value: item.summary || "",
+      });
+      setTab("staff");
+      return;
+    }
+    if (item.kind === "alert") {
+      setZoneFocus({
+        zoneId: item.zone_id || "",
+        cameraId: item.camera_id || "",
+        animalId: item.pet_id || "",
+      });
+      setTab("zone");
+    }
+  }
 
   return (
     <section className="panel">
@@ -302,6 +342,7 @@ export default function StaffBoard() {
             <span>{it.summary}</span>
             <span className="muted">ts: {it.ts}</span>
             <span className="muted">staff: {it.staff_id ?? "-"}</span>
+            <button className="ghost" onClick={() => focusFromActivity(it)}>관련 화면 열기</button>
           </article>
         ))}
       </div>

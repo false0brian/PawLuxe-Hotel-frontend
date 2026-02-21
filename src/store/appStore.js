@@ -19,6 +19,11 @@ export const useAppStore = create((set) => ({
     type: "feeding",
     value: "",
   },
+  zoneFocus: {
+    zoneId: "",
+    cameraId: "",
+    animalId: "",
+  },
   setTab: (tab) => set({ tab }),
   setRole: (role) => set({ role }),
   setUserId: (userId) => set({ userId }),
@@ -35,4 +40,12 @@ export const useAppStore = create((set) => ({
     set((state) => ({
       staffForm: { ...state.staffForm, ...patch },
     })),
+  setZoneFocus: (patch) =>
+    set((state) => ({
+      zoneFocus: { ...state.zoneFocus, ...patch },
+    })),
+  clearZoneFocus: () =>
+    set({
+      zoneFocus: { zoneId: "", cameraId: "", animalId: "" },
+    }),
 }));

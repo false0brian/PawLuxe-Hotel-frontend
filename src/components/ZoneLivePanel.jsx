@@ -3,7 +3,7 @@ import { fetchCameraHealth, fetchLiveZoneHeatmap, fetchLiveZoneRisk, fetchLiveZo
 import { useAppStore } from "../store/appStore";
 
 export default function ZoneLivePanel() {
-  const { apiBase, apiKey, role, userId, sessionToken, setTab, mergeStaffForm } = useAppStore();
+  const { apiBase, apiKey, role, userId, sessionToken, setTab, mergeStaffForm, zoneFocus, clearZoneFocus } = useAppStore();
   const [windowSeconds, setWindowSeconds] = useState(10);
   const [refreshMs, setRefreshMs] = useState(1500);
   const [heatmapWindowSeconds, setHeatmapWindowSeconds] = useState(300);
@@ -108,6 +108,20 @@ export default function ZoneLivePanel() {
     sessionToken,
   ]);
 
+  useEffect(() => {
+    if (!zoneFocus?.zoneId && !zoneFocus?.cameraId && !zoneFocus?.animalId) return;
+    if (zoneFocus.cameraId) setCameraId(zoneFocus.cameraId);
+    if (zoneFocus.animalId) setAnimalId(zoneFocus.animalId);
+  }, [zoneFocus?.zoneId, zoneFocus?.cameraId, zoneFocus?.animalId]);
+
+  useEffect(() => {
+    if (!zoneFocus?.zoneId) return;
+    const el = document.getElementById(`zone-card-${zoneFocus.zoneId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [zoneFocus?.zoneId, summary, risk]);
+
   return (
     <section className="panel">
       <h2>Zone Live Board</h2>
@@ -158,6 +172,12 @@ export default function ZoneLivePanel() {
         window: {summary?.window_seconds ?? windowSeconds}s | zones: {summary?.zone_count ?? 0} | observations:{" "}
         {summary?.total_observations ?? 0}
       </p>
+      {zoneFocus?.zoneId || zoneFocus?.cameraId || zoneFocus?.animalId ? (
+        <p className="muted">
+          focus zone:{zoneFocus.zoneId || "-"} cam:{zoneFocus.cameraId || "-"} animal:{zoneFocus.animalId || "-"}{" "}
+          <button className="ghost" onClick={clearZoneFocus}>focus 해제</button>
+        </p>
+      ) : null}
 
       <div className="divider" />
       <h3>Top Risk Zones</h3>
@@ -187,6 +207,7 @@ export default function ZoneLivePanel() {
       <div className="cards">
         {(summary?.zones || []).map((zone) => (
           <article
+            id={`zone-card-${zone.zone_id}`}
             className={`card zone-card ${
               Number(riskByZone[zone.zone_id]?.risk_score || 0) >= 70
                 ? "zone-risk-critical"
