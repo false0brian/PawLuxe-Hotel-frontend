@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useStaffOps } from "../hooks/useStaffOps";
 import { useStaffAlerts } from "../hooks/useStaffAlerts";
+import { useStaffActivityFeed } from "../hooks/useStaffActivityFeed";
 import { useTodayBoard } from "../hooks/useTodayBoard";
 import {
   ackStaffAlert,
   evaluateAlerts,
   executeStaffAlertAction,
-  fetchStaffActivityFeed,
   fetchStaffAlerts,
   generateAutoClips,
 } from "../lib/api";
@@ -16,7 +16,6 @@ export default function StaffBoard() {
   const { apiBase, apiKey, role, userId, sessionToken, staffForm, setStaffFormField, mergeStaffForm } = useAppStore();
   const [alerts, setAlerts] = useState([]);
   const [alertError, setAlertError] = useState("");
-  const [activityFeed, setActivityFeed] = useState([]);
   const [autoClipWindow, setAutoClipWindow] = useState(180);
   const [autoClipMax, setAutoClipMax] = useState(5);
   const [autoClipResult, setAutoClipResult] = useState(null);
@@ -33,6 +32,15 @@ export default function StaffBoard() {
     reconnect,
     disconnect,
   } = useStaffAlerts();
+  const {
+    connected: feedConnected,
+    error: feedWsError,
+    items: activityFeed,
+    intervalMs: feedIntervalMs,
+    setIntervalMs: setFeedIntervalMs,
+    reconnect: reconnectFeed,
+    disconnect: disconnectFeed,
+  } = useStaffActivityFeed();
   const items = board?.items ?? [];
 
   async function loadAlerts() {
@@ -42,15 +50,6 @@ export default function StaffBoard() {
       setAlerts(data);
     } catch (e) {
       setAlertError(`알림 조회 실패: ${e.message}`);
-    }
-  }
-
-  async function loadActivityFeed() {
-    try {
-      const data = await fetchStaffActivityFeed({ apiBase, apiKey, role, userId, sessionToken, limit: 20 });
-      setActivityFeed(data.items || []);
-    } catch (_e) {
-      // Keep feed best-effort without interrupting primary board actions.
     }
   }
 
@@ -65,7 +64,6 @@ export default function StaffBoard() {
         sessionToken,
       });
       await loadAlerts();
-      await loadActivityFeed();
     } catch (e) {
       setAlertError(`알림 평가 실패: ${e.message}`);
     }
@@ -76,7 +74,6 @@ export default function StaffBoard() {
     try {
       await ackStaffAlert({ apiBase, apiKey, role, userId, sessionToken, alertId, status });
       await loadAlerts();
-      await loadActivityFeed();
     } catch (e) {
       setAlertError(`알림 처리 실패: ${e.message}`);
     }
@@ -87,7 +84,6 @@ export default function StaffBoard() {
     try {
       await executeStaffAlertAction({ apiBase, apiKey, role, userId, sessionToken, alertId, actionId });
       await loadAlerts();
-      await loadActivityFeed();
     } catch (e) {
       setAlertError(`추천 액션 실패: ${e.message}`);
     }
@@ -106,7 +102,6 @@ export default function StaffBoard() {
         maxClips: autoClipMax,
       });
       setAutoClipResult(data);
-      await loadActivityFeed();
     } catch (e) {
       setAlertError(`자동 클립 생성 실패: ${e.message}`);
     }
@@ -123,7 +118,6 @@ export default function StaffBoard() {
           {boardLoading ? "보드 갱신중..." : "보드 새로고침"}
         </button>
         <button className="ghost" onClick={loadAlerts}>알림 조회</button>
-        <button className="ghost" onClick={loadActivityFeed}>활동 피드 조회</button>
         <button className="ghost" onClick={runAlertEvaluate}>알림 평가 실행</button>
         <button className="ghost" onClick={runAutoClipGenerate}>자동 클립 생성</button>
         <button className="ghost" onClick={reconnect}>알림 WS 재연결</button>
@@ -149,11 +143,21 @@ export default function StaffBoard() {
           onChange={(e) => setAutoClipMax(Number(e.target.value || 5))}
           placeholder="clip_max"
         />
+        <button className="ghost" onClick={reconnectFeed}>피드 WS 재연결</button>
+        <button className="ghost" onClick={disconnectFeed}>피드 WS 종료</button>
+        <input
+          type="number"
+          value={feedIntervalMs}
+          onChange={(e) => setFeedIntervalMs(Number(e.target.value || 1500))}
+          placeholder="feed_interval_ms"
+        />
       </div>
       {boardError ? <p className="error">{boardError}</p> : null}
       {alertError ? <p className="error">{alertError}</p> : null}
       {alertsWsError ? <p className="error">{alertsWsError}</p> : null}
+      {feedWsError ? <p className="error">{feedWsError}</p> : null}
       <p className="muted">Alerts WS connected: {String(alertsConnected)}</p>
+      <p className="muted">Feed WS connected: {String(feedConnected)}</p>
       {autoClipResult ? <pre>{JSON.stringify(autoClipResult, null, 2)}</pre> : null}
       {board ? (
         <>
